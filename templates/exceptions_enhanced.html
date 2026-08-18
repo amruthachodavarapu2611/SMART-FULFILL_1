@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>⚠️ Exception Management</h1>
+
+<p class="page-description">
+    Exception → Decision → Resolution
+</p>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <h3>Open Exceptions</h3>
+        <div class="number">{{ exceptions | selectattr('status', 'equalto', 'OPEN') | list | length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Resolved</h3>
+        <div class="number">{{ exceptions | selectattr('status', 'equalto', 'RESOLVED') | list | length }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Open Exceptions</h2>
+
+    <div class="exception-grid">
+        {% set open_exceptions = exceptions | selectattr('status', 'equalto', 'OPEN') | list %}
+        {% if open_exceptions %}
+            {% for exception in open_exceptions %}
+            <div class="exception-card open">
+                <div class="exception-header">
+                    <h3>{{ exception.exception_type }}</h3>
+                    <span class="severity {{ exception.severity|lower }}">{{ exception.severity }}</span>
+                </div>
+
+                <div class="exception-details">
+                    <p><strong>ID:</strong> <code>{{ exception.exception_id }}</code></p>
+                    <p><strong>Order:</strong> {{ exception.order_id }}</p>
+                    <p><strong>Product:</strong> {{ exception.product_id }}</p>
+                    <p class="description">{{ exception.description }}</p>
+                </div>
+
+                <div class="exception-actions">
+                    <button class="btn-resolve" onclick="showResolutionForm('{{ exception.exception_id }}')">
+                        ✓ Resolve
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">✅ All exceptions have been resolved!</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section">
+    <h2>Resolved Exceptions</h2>
+    <div class="exception-grid">
+        {% set resolved_exceptions = exceptions | selectattr('status', 'equalto', 'RESOLVED') | list %}
+        {% if resolved_exceptions %}
+            {% for exception in resolved_exceptions %}
+            <div class="exception-card resolved">
+                <div class="exception-header">
+                    <h3>{{ exception.exception_type }}</h3>
+                    <span class="status-resolved">✓ RESOLVED</span>
+                </div>
+                <p><strong>Order:</strong> {{ exception.order_id }}</p>
+                <p><strong>Assigned to:</strong> {{ exception.assigned_to }}</p>
+                <p class="resolution"><strong>Resolution:</strong> {{ exception.resolution }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">No resolved exceptions yet</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resolution Modal -->
+<div id="resolutionModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeResolutionForm()">&times;</span>
+        <h2>Resolve Exception</h2>
+        <form method="POST" id="resolutionForm">
+            <div class="form-group">
+                <label>Assigned To:</label>
+                <input type="text" name="assigned_to" placeholder="Person handling this" required>
+            </div>
+            <div class="form-group">
+                <label>Resolution:</label>
+                <textarea name="resolution" rows="5" placeholder="Describe the action taken..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Mark as Resolved</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card h3 {
+        margin: 0 0 10px 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .stat-card .number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #ff9800;
+    }
+
+    .exception-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .exception-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        border-left: 5px solid #ff9800;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .exception-card.resolved {
+        border-left-color: #4CAF50;
+        background-color: #f1f8f4;
+        opacity: 0.85;
+    }
+
+    .exception-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .exception-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 16px;
+        flex: 1;
+    }
+
+    .severity {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .severity.high {
+        background-color: #f44336;
+    }
+
+    .severity.medium {
+        background-color: #ff9800;
+    }
+
+    .severity.low {
+        background-color: #2196F3;
+    }
+
+    .status-resolved {
+        background-color: #4CAF50;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .exception-details p {
+        margin: 8px 0;
+        font-size: 13px;
+        color: #555;
+    }
+
+    code {
+        background-color: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 12px;
+    }
+
+    .description {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px !important;
+        border-left: 3px solid #ff9800;
+    }
+
+    .resolution {
+        background-color: #e8f5e9;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px !important;
+        border-left: 3px solid #4CAF50;
+    }
+
+    .exception-actions {
+        margin-top: 15px;
+        text-align: right;
+    }
+
+    .btn-resolve {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .btn-resolve:hover {
+        background-color: #45a049;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        color: #999;
+        grid-column: 1 / -1;
+    }
+
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: black;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<script>
+    function showResolutionForm(exceptionId) {
+        const form = document.getElementById('resolutionForm');
+        form.action = `{{ url_for('resolve_exception', exc_id='EXC_ID') }}`.replace('EXC_ID', exceptionId);
+        document.getElementById('resolutionModal').style.display = 'block';
+    }
+
+    function closeResolutionForm() {
+        document.getElementById('resolutionModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('resolutionModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+
+{% endblock %}

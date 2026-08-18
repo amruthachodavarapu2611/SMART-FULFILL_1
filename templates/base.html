@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SmartFulfill AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <aside class="sidebar">
+
+            <h2>📦 SmartFulfill</h2>
+
+            <p class="subtitle">
+                Warehouse Intelligence
+            </p>
+
+            <button id="theme-toggle" class="theme-toggle" type="button">
+                🌙 Dark mode
+            </button>
+
+            <nav>
+
+                <a href="{{ url_for('dashboard') }}">
+                    📊 Dashboard
+                </a>
+
+                <a href="{{ url_for('inventory') }}">
+                    📦 Inventory
+                </a>
+
+                <a href="{{ url_for('orders') }}">
+                    🛒 Orders
+                </a>
+
+                <a href="{{ url_for('picking') }}">
+                    🎯 Picking
+                </a>
+
+                <a href="{{ url_for('packing') }}">
+                    📦 Packing
+                </a>
+
+                <a href="{{ url_for('quality_check') }}">
+                    ✅ QC
+                </a>
+
+                <a href="{{ url_for('analytics') }}">
+                    📈 Analytics
+                </a>
+
+                <a href="{{ url_for('exceptions') }}">
+                    ⚠️ Exceptions
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <main class="main">
+
+            {% with messages = get_flashed_messages() %}
+
+                {% if messages %}
+
+                    {% for message in messages %}
+
+                        <div class="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            {% block content %}
+
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+    <script>
+        const toggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        const savedTheme = localStorage.getItem('warehouse-theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            toggle.textContent = '☀️ Light mode';
+        }
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('warehouse-theme', isDark ? 'dark' : 'light');
+            toggle.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+        });
+    </script>
+
+</body>
+
+</html>

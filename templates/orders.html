@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🛒 Smart Order Management</h1>
+
+<p class="page-description">
+    Orders automatically ranked by operational priority
+</p>
+
+<div class="orders-toolbar">
+    <form method="GET" class="search-bar">
+        <input
+            type="text"
+            name="search"
+            value="{{ search or '' }}"
+            placeholder="Search by order, customer or product"
+            aria-label="Search orders"
+        >
+        <button class="button" type="submit">Search</button>
+        {% if search %}
+        <a class="clear-search" href="{{ url_for('orders') }}">Clear</a>
+        {% endif %}
+    </form>
+
+    <a class="button create-order-button" href="{{ url_for('place_order') }}">
+        + Place New Order
+    </a>
+</div>
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>Order ID</th>
+
+            <th>Customer</th>
+
+            <th>Product</th>
+
+            <th>Quantity</th>
+
+            <th>Priority</th>
+
+            <th>Score</th>
+
+            <th>Deadline</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for order in orders %}
+
+        <tr>
+
+            <td>
+                <strong>
+                    {{ order.order_id }}
+                </strong>
+            </td>
+
+            <td>
+                {{ order.customer }}
+            </td>
+
+            <td>
+                {{ order.product_id }}
+            </td>
+
+            <td>
+                {{ order.quantity }}
+            </td>
+
+            <td>
+
+                <span class="priority
+                    {{ order.priority_level|lower }}">
+
+                    {{ order.priority_level }}
+
+                </span>
+
+            </td>
+
+            <td>
+                {{ order.priority_score }}
+            </td>
+
+            <td>
+                {{ order.hours_to_deadline }} hours
+            </td>
+
+            <td>
+                {{ order.status }}
+            </td>
+
+            <td>
+
+                {% if order.status == "PENDING" %}
+
+                <form method="POST"
+                      action="{{ url_for(
+                      'allocate',
+                      order_id=order.order_id
+                      ) }}">
+
+                    <button class="button">
+
+                        🧠 Smart Allocate
+
+                    </button>
+
+                </form>
+
+                {% else %}
+
+                <span>
+                    ✓ Processed
+                </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

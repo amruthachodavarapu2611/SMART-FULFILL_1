@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🛒 Place New Order</h1>
+
+<p class="page-description">
+    Create a warehouse order and let the system prioritize it automatically
+</p>
+
+<form method="POST" class="order-form">
+    <div class="form-grid">
+        <div class="form-field">
+            <label for="customer">Customer</label>
+            <input type="text" id="customer" name="customer" placeholder="Customer name" required>
+        </div>
+
+        <div class="form-field">
+            <label for="product_id">Product</label>
+            <select id="product_id" name="product_id" required>
+                {% for product in products %}
+                <option value="{{ product.product_id }}">{{ product.name }} ({{ product.product_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+        </div>
+
+        <div class="form-field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <option value="URGENT">URGENT</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM" selected>MEDIUM</option>
+                <option value="LOW">LOW</option>
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="hours_to_deadline">Hours to Deadline</label>
+            <input type="number" id="hours_to_deadline" name="hours_to_deadline" min="1" value="24" required>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <button class="button" type="submit">Create Order</button>
+        <a class="secondary-link" href="{{ url_for('orders') }}">Back to Orders</a>
+    </div>
+</form>
+
+{% endblock %}

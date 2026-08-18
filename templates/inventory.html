@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📦 Inventory Intelligence</h1>
+
+<p class="page-description">
+    Monitor stock levels and reorder recommendations
+</p>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>Product</th>
+
+            <th>Category</th>
+
+            <th>Location</th>
+
+            <th>Current</th>
+
+            <th>Reserved</th>
+
+            <th>Damaged</th>
+
+            <th>Available</th>
+
+            <th>Status</th>
+
+            <th>Recommendation</th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for item in inventory %}
+
+        <tr>
+
+            <td>
+                <strong>
+                    {{ item.product.name }}
+                </strong>
+            </td>
+
+            <td>
+                {{ item.product.category }}
+            </td>
+
+            <td>
+                {{ item.product.location }}
+            </td>
+
+            <td>
+                {{ item.product.current_stock }}
+            </td>
+
+            <td>
+                {{ item.product.reserved_stock }}
+            </td>
+
+            <td>
+                {{ item.product.damaged_stock }}
+            </td>
+
+            <td>
+                <strong>
+                    {{ item.available }}
+                </strong>
+            </td>
+
+            <td>
+
+                {% if item.status == "HEALTHY" %}
+
+                    <span class="status healthy">
+                        HEALTHY
+                    </span>
+
+                {% elif item.status == "LOW STOCK" %}
+
+                    <span class="status low">
+                        LOW STOCK
+                    </span>
+
+                {% else %}
+
+                    <span class="status out">
+                        OUT OF STOCK
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                {% if item.reorder.reorder_required %}
+
+                    <strong>
+                        🔄 Reorder
+                        {{ item.reorder.recommended_quantity }}
+                        units
+                    </strong>
+
+                {% else %}
+
+                    Stock sufficient
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

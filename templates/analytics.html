@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📈 Warehouse Analytics & Insights</h1>
+
+<p class="page-description">
+    Operational health snapshot & performance metrics
+</p>
+
+<!-- Key Metrics Grid -->
+<div class="analytics-grid">
+    <div class="metric-box">
+        <h3>📦 Total Stock</h3>
+        <div class="metric-value">{{ total_stock }}</div>
+    </div>
+    <div class="metric-box">
+        <h3>✓ Reserved</h3>
+        <div class="metric-value">{{ reserved_stock }}</div>
+    </div>
+    <div class="metric-box warning">
+        <h3>⚠️ Damaged</h3>
+        <div class="metric-value">{{ damaged_stock }}</div>
+    </div>
+    <div class="metric-box danger">
+        <h3>🚨 Low Stock</h3>
+        <div class="metric-value">{{ low_stock_items }}</div>
+    </div>
+</div>
+
+<!-- Stock Status by Category -->
+<div class="analytics-panel">
+    <h2>📊 Available Stock Distribution by Category</h2>
+    <div class="bar-chart">
+        {% for item in category_chart %}
+        <div class="bar-row">
+            <span class="bar-label">{{ item.label }}</span>
+            <div class="bar-track">
+                <div class="bar-fill" style="width: {{ item.percent }}%;"></div>
+            </div>
+            <strong class="bar-value">{{ item.value }} units</strong>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Bottleneck Warning -->
+<div class="analytics-panel warning-panel">
+    <h2>⚡ Operational Insights</h2>
+    <div class="insights-grid">
+        <div class="insight-card">
+            <h3>🎯 Inventory Efficiency</h3>
+            <p>Monitor stock levels and plan replenishments to avoid stockouts.</p>
+            <div class="status-indicator">
+                {% if low_stock_items == 0 %}
+                    <span class="indicator healthy">✓ Healthy</span>
+                {% elif low_stock_items <= 2 %}
+                    <span class="indicator warning">⚠ Check Soon</span>
+                {% else %}
+                    <span class="indicator danger">🚨 Action Needed</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <h3>📈 Fulfillment Pipeline</h3>
+            <p>Orders progress through: Pending → Allocated → Picking → Packing → QC → Shipped</p>
+            <div class="status-indicator">
+                <span class="indicator info">ℹ Monitor dashboard</span>
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <h3>🔍 Quality Control</h3>
+            <p>Track QC failures and prioritize re-inspection to maintain order quality.</p>
+            <div class="status-indicator">
+                <span class="indicator healthy">✓ No QC issues</span>
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <h3>⏱️ Delivery Performance</h3>
+            <p>Monitor order deadlines and prioritize critical shipments.</p>
+            <div class="status-indicator">
+                <span class="indicator info">ℹ On track</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- High Risk Products -->
+<div class="analytics-panel">
+    <h2>🎯 Products Requiring Attention</h2>
+    {% if stock_risk %}
+        <div class="risk-table">
+            <div class="risk-header">
+                <div class="col-name">Product Name</div>
+                <div class="col-category">Category</div>
+                <div class="col-available">Available</div>
+                <div class="col-status">Status</div>
+                <div class="col-risk">Risk Score</div>
+            </div>
+            {% for item in stock_risk %}
+            <div class="risk-row">
+                <div class="col-name">{{ item.name }}</div>
+                <div class="col-category">{{ item.category }}</div>
+                <div class="col-available">{{ item.available }}</div>
+                <div class="col-status">
+                    <span class="status-badge {{ item.status|lower }}">{{ item.status }}</span>
+                </div>
+                <div class="col-risk">
+                    {% if item.risk_score > 50 %}
+                        <span class="risk-high">{{ item.risk_score }}</span>
+                    {% elif item.risk_score > 20 %}
+                        <span class="risk-medium">{{ item.risk_score }}</span>
+                    {% else %}
+                        <span class="risk-low">{{ item.risk_score }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">✓ All products are in healthy stock levels</div>
+    {% endif %}
+</div>
+
+<!-- Recommendations -->
+<div class="analytics-panel recommendation-panel">
+    <h2>💡 Smart Recommendations</h2>
+    <div class="recommendation-list">
+        {% if low_stock_items > 0 %}
+            <div class="recommendation-item urgent">
+                <span class="icon">🔄</span>
+                <div class="text">
+                    <strong>Urgent: {{ low_stock_items }} products are low on stock</strong>
+                    <p>Initiate emergency reorders to prevent stockouts and order delays.</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="recommendation-item">
+            <span class="icon">⚡</span>
+            <div class="text">
+                <strong>Use Batch Allocation for Multi-Order Processing</strong>
+                <p>Process multiple orders for the same product simultaneously to optimize picking efficiency.</p>
+            </div>
+        </div>
+
+        <div class="recommendation-item">
+            <span class="icon">📊</span>
+            <div class="text">
+                <strong>Monitor Workflow Stages</strong>
+                <p>Check the Dashboard to identify bottlenecks in Picking, Packing, or QC stages.</p>
+            </div>
+        </div>
+
+        <div class="recommendation-item">
+            <span class="icon">✓</span>
+            <div class="text">
+                <strong>Resolve Open Exceptions Promptly</strong>
+                <p>Visit Exceptions page to address stockouts, damaged items, and missing inventory issues.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .metric-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #2196F3;
+    }
+
+    .metric-box.warning {
+        border-left-color: #ff9800;
+    }
+
+    .metric-box.danger {
+        border-left-color: #f44336;
+    }
+
+    .metric-box h3 {
+        margin: 0 0 10px 0;
+        color: #666;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .analytics-panel {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .analytics-panel h2 {
+        margin-top: 0;
+        color: #333;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .bar-label {
+        min-width: 100px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .bar-track {
+        flex: 1;
+        height: 30px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2196F3, #1976D2);
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+
+    .bar-value {
+        min-width: 80px;
+        text-align: right;
+        font-size: 14px;
+    }
+
+    .warning-panel {
+        border-top: 4px solid #ff9800;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .insight-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 6px;
+        border-left: 4px solid #2196F3;
+    }
+
+    .insight-card h3 {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .insight-card p {
+        margin: 8px 0;
+        color: #666;
+        font-size: 13px;
+    }
+
+    .status-indicator {
+        margin-top: 12px;
+    }
+
+    .indicator {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .indicator.healthy {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .indicator.warning {
+        background-color: #ffe0b2;
+        color: #e65100;
+    }
+
+    .indicator.danger {
+        background-color: #ffcdd2;
+        color: #c62828;
+    }
+
+    .indicator.info {
+        background-color: #bbdefb;
+        color: #1565c0;
+    }
+
+    .risk-table {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .risk-header,
+    .risk-row {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+        gap: 15px;
+        padding: 12px;
+        align-items: center;
+    }
+
+    .risk-header {
+        background-color: #f5f5f5;
+        font-weight: 600;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .risk-row {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .risk-row:last-child {
+        border-bottom: none;
+    }
+
+    .risk-row:hover {
+        background-color: #fafafa;
+    }
+
+    .col-name {
+        font-weight: 600;
+    }
+
+    .col-category {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .col-available {
+        font-size: 14px;
+    }
+
+    .col-status {
+        text-align: center;
+    }
+
+    .col-risk {
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-badge.low\ stock {
+        background-color: #ffe0b2;
+        color: #e65100;
+    }
+
+    .status-badge.out\ of\ stock {
+        background-color: #ffcdd2;
+        color: #c62828;
+    }
+
+    .status-badge.healthy {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .risk-high {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .risk-medium {
+        color: #ff9800;
+        font-weight: bold;
+    }
+
+    .risk-low {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        background-color: #f5f5f5;
+        border-radius: 6px;
+        color: #999;
+    }
+
+    .recommendation-panel {
+        border-top: 4px solid #4CAF50;
+        background: #f1f8f4;
+    }
+
+    .recommendation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .recommendation-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 6px;
+        border-left: 4px solid #2196F3;
+    }
+
+    .recommendation-item.urgent {
+        border-left-color: #f44336;
+        background: #ffebee;
+    }
+
+    .recommendation-item .icon {
+        font-size: 24px;
+        min-width: 30px;
+    }
+
+    .recommendation-item .text strong {
+        color: #333;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .recommendation-item .text p {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+    }
+</style>
+
+{% endblock %}

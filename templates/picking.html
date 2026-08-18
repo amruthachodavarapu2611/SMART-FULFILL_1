@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🎯 Picking Management</h1>
+
+<p class="page-description">
+    Manage order picking operations
+</p>
+
+<div class="cards">
+    <div class="card">
+        <h3>📦 Orders Ready</h3>
+        <div class="number">{{ picking_orders | length }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Picking Queue (by Priority)</h2>
+
+    {% if picking_orders %}
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Location</th>
+                    <th>Quantity</th>
+                    <th>Priority</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for order in picking_orders %}
+
+                <tr>
+                    <td><strong>{{ order['order_id'] }}</strong></td>
+                    <td>{{ order['product_name'] }}</td>
+                    <td><code>{{ order['location'] }}</code></td>
+                    <td>{{ order['quantity'] }}</td>
+                    <td>
+                        <span class="badge {{ order['priority_level'].lower() }}">
+                            {{ order['priority_level'] }}
+                        </span>
+                    </td>
+                    <td>{{ order['hours_to_deadline'] }}h</td>
+                    <td>{{ order['status'] }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <form method="POST" action="{{ url_for('start_picking', order_id=order['order_id']) }}" style="display:inline;">
+                                <input type="text" name="picker_name" placeholder="Picker name" required>
+                                <button type="submit" class="btn-small">Start</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <div class="empty-state">
+            <p>✅ No orders pending picking</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+    .action-buttons form {
+        display: flex;
+        gap: 5px;
+    }
+
+    .action-buttons input {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .btn-small:hover {
+        background-color: #45a049;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .data-table th {
+        background-color: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .data-table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .data-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge.critical {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .badge.high {
+        background-color: #ff9800;
+        color: white;
+    }
+
+    .badge.medium {
+        background-color: #2196F3;
+        color: white;
+    }
+
+    .badge.low {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        color: #666;
+    }
+</style>
+
+{% endblock %}

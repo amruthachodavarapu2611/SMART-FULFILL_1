@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📦 Packing Management</h1>
+
+<p class="page-description">
+    Manage order packing and preparation
+</p>
+
+<div class="cards">
+    <div class="card">
+        <h3>📦 Orders to Pack</h3>
+        <div class="number">{{ packing_orders | length }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Packing Queue</h2>
+
+    {% if packing_orders %}
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Priority</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for order in packing_orders %}
+
+                <tr>
+                    <td><strong>{{ order['order_id'] }}</strong></td>
+                    <td>{{ order['customer'] }}</td>
+                    <td>{{ order['product_name'] }}</td>
+                    <td>{{ order['quantity'] }}</td>
+                    <td>
+                        <span class="badge {{ order['priority_level'].lower() }}">
+                            {{ order['priority_level'] }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <form method="POST" action="{{ url_for('start_packing', order_id=order['order_id']) }}" style="display:inline;">
+                                <input type="text" name="packer_name" placeholder="Packer name" required>
+                                <button type="submit" class="btn-small start">Start</button>
+                            </form>
+                            
+                            <button class="btn-small" onclick="showPackingForm('{{ order['order_id'] }}')">Complete</button>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <div class="empty-state">
+            <p>✅ All orders have been packed!</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<!-- Complete Packing Modal -->
+<div id="packingModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closePackingForm()">&times;</span>
+        <h2>Complete Packing</h2>
+        
+        <form method="POST" id="packingForm">
+            <div class="form-group">
+                <label>Weight (kg):</label>
+                <input type="number" name="weight" step="0.1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Dimensions (LxWxH):</label>
+                <input type="text" name="dimensions" placeholder="e.g., 30x20x10" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Complete Packing</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .action-group form {
+        display: flex;
+        gap: 5px;
+    }
+
+    .action-group input {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .btn-small.start {
+        background-color: #4CAF50;
+    }
+
+    .btn-small:hover {
+        opacity: 0.9;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .data-table th {
+        background-color: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .data-table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .data-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge.critical {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .badge.high {
+        background-color: #ff9800;
+        color: white;
+    }
+
+    .badge.medium {
+        background-color: #2196F3;
+        color: white;
+    }
+
+    .badge.low {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        color: #666;
+    }
+
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 400px;
+        border-radius: 8px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: black;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 14px;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<script>
+    function showPackingForm(orderId) {
+        const form = document.getElementById('packingForm');
+        form.action = `{{ url_for('complete_packing', order_id='ORDER_ID') }}`.replace('ORDER_ID', orderId);
+        document.getElementById('packingModal').style.display = 'block';
+    }
+
+    function closePackingForm() {
+        document.getElementById('packingModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('packingModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+
+{% endblock %}
