@@ -1,8 +1,13 @@
 import sqlite3
+import os
 
-
-DATABASE = "warehouse.db"
-
+if os.environ.get("VERCEL"):
+    DATABASE = "/tmp/warehouse.db"
+else:
+    DATABASE = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "warehouse.db"
+    )
 
 def get_connection():
 
